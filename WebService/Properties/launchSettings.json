@@ -13,14 +13,14 @@
       "launchBrowser": true,
       "launchUrl": "http://localhost:54321/v1/status",
       "environmentVariables": {
-        "PCS_IOTHUB_CONNSTRING": "HostName={Your Azure IoT Hub hostname};SharedAccessKeyName=iothubowner;SharedAccessKey={SECRET KEY}"
+        "PCS_IOTHUB_CONNSTRING": "$(PCS_IOTHUB_CONNSTRING)"
       }
     },
     "WebService": {
       "commandName": "Project",
       "launchUrl": "http://localhost:54321/v1/status",
       "environmentVariables": {
-        "PCS_IOTHUB_CONNSTRING": "HostName={Your Azure IoT Hub hostname};SharedAccessKeyName=iothubowner;SharedAccessKey={SECRET KEY}"
+        "PCS_IOTHUB_CONNSTRING": "$(PCS_IOTHUB_CONNSTRING)"
       },
       "applicationUrl": "http://localhost:54321/v1/status"
     }
