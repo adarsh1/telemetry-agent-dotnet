@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Devices;
@@ -63,7 +64,6 @@ namespace Microsoft.Azure.IoTSolutions.IoTStreamAnalytics.StreamingAgent
         public async Task RunAsync(CancellationToken ct)
         {
             PrintBootstrapInfo();
-            CheckConfiguration();
 
             await RunEventProcessorAsync();
 
@@ -96,29 +96,6 @@ namespace Microsoft.Azure.IoTSolutions.IoTStreamAnalytics.StreamingAgent
             logger.Info($"Checkpointing min frequency: {config.IoTHubConfig.CheckpointingConfig.Frequency}", () => { });
         }
 
-        private void CheckConfiguration()
-        {
-            if (string.IsNullOrWhiteSpace(config.IoTHubConfig.ConnectionConfig.HubName))
-            {
-                throw new InvalidConfigurationException("Azure IoT Hub name not found in the configuration.");
-            }
-
-            if (string.IsNullOrWhiteSpace(config.IoTHubConfig.ConnectionConfig.HubEndpoint))
-            {
-                throw new InvalidConfigurationException("Azure IoT Hub endpoint not found in the configuration.");
-            }
-
-            if (string.IsNullOrWhiteSpace(config.IoTHubConfig.CheckpointingConfig.StorageConfig.Namespace))
-            {
-                throw new InvalidConfigurationException("Checkpointing namespace not found in the configuration.");
-            }
-
-            if (config.IoTHubConfig.CheckpointingConfig.StorageConfig.BackendType != "AzureBlob")
-            {
-                throw new InvalidConfigurationException("Checkpointing backend storage must be Azure Blob.");
-            }
-        }
-
         private async Task RunEventProcessorAsync()
         {
             switch (config.IoTHubConfig.CheckpointingConfig.StorageConfig.BackendType)
@@ -147,16 +124,8 @@ namespace Microsoft.Azure.IoTSolutions.IoTStreamAnalytics.StreamingAgent
 
             var iotHubConnectionBuilder = IotHubConnectionStringBuilder.Create(config.IoTHubConfig.ConnectionConfig.AccessConnString);
 
-            if (!Uri.TryCreate(config.IoTHubConfig.ConnectionConfig.HubEndpoint, UriKind.Absolute, out Uri endpoint))
-            {
-                if (!Uri.TryCreate($"sb://{config.IoTHubConfig.ConnectionConfig.HubEndpoint}/", UriKind.Absolute, out endpoint))
-                {
-                    throw new InvalidConfigurationException($"Invalid IoTHub endpoint {config.IoTHubConfig.ConnectionConfig.HubEndpoint}");
-                }
-            }
-
             var eventHubConntionStringBuilder = new EventHubsConnectionStringBuilder(
-                endpoint,
+                new Uri(config.IoTHubConfig.ConnectionConfig.HubEndpoint),
                 config.IoTHubConfig.ConnectionConfig.HubName,
                 iotHubConnectionBuilder.SharedAccessKeyName,
                 iotHubConnectionBuilder.SharedAccessKey);
